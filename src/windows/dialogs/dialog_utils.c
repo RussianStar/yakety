@@ -153,7 +153,8 @@ void dialog_draw_text_with_shadow(HDC hdc, const wchar_t* text, const RECT* rect
 
     // Draw main text
     SetTextColor(hdc, text_color);
-    DrawTextW(hdc, text, -1, rect, format);
+    RECT text_rect = *rect;
+    DrawTextW(hdc, text, -1, &text_rect, format);
 
     SetBkMode(hdc, old_mode);
     if (old_font) {
