@@ -29,7 +29,7 @@ Cross-platform speech-to-text application for instant voice transcription throug
 
 - **macOS**: 14.0+, Apple Silicon, accessibility permissions
 - **Windows**: Visual Studio or Ninja, optional Vulkan SDK
-- **Dependencies**: whisper.cpp (auto-downloaded), optional libcurl for remote transcription
+- **Dependencies**: whisper.cpp (auto-downloaded), libcurl for remote transcription on non-Windows (WinHTTP used on Windows)
 
 ## macOS Permissions
 
