@@ -5,6 +5,15 @@
 extern "C" {
 #endif
 
+typedef enum {
+    TRANSCRIPTION_PROVIDER_WHISPER = 0,
+    TRANSCRIPTION_PROVIDER_REMOTE_HTTP = 1
+} TranscriptionProvider;
+
+// Returns the preferred provider based on preferences/environment.
+TranscriptionProvider transcription_get_provider(void);
+const char *transcription_get_provider_name(void);
+
 int transcription_init(const char *model_path);
 void transcription_cleanup(void);
 void transcription_set_language(const char *language);

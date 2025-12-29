@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "logging.h"
+#include "preferences.h"
 #include "transcription.h"
 #include "utils.h"
 
@@ -137,25 +138,37 @@ int main(int argc, char *argv[]) {
     const char *audio_file = argv[1];
     const char *model_path = NULL;
 
-    // Check if model path was provided as second argument
-    if (argc >= 3) {
-        model_path = argv[2];
-    } else {
-        // Get default model path
-        model_path = utils_get_model_path();
-        if (!model_path) {
-            printf("Error: Could not find Whisper model file\n");
-            return 1;
+    if (!preferences_init()) {
+        log_error("WARNING: Failed to initialize preferences, using defaults");
+    }
+
+    TranscriptionProvider provider = transcription_get_provider();
+    const char *provider_name = transcription_get_provider_name();
+
+    if (provider == TRANSCRIPTION_PROVIDER_WHISPER) {
+        // Check if model path was provided as second argument
+        if (argc >= 3) {
+            model_path = argv[2];
+        } else {
+            // Get default model path
+            model_path = utils_get_model_path();
+            if (!model_path) {
+                printf("Error: Could not find Whisper model file\n");
+                return 1;
+            }
         }
     }
 
-    printf("=== Whisper Transcription Performance Test ===\n");
+    printf("=== Transcription Performance Test ===\n");
     printf("Audio file: %s\n", audio_file);
+    printf("Provider: %s\n", provider_name);
 
     double start_time = utils_now();
 
-    printf("Using model: %s\n", model_path);
-    printf("Loading model...\n");
+    if (provider == TRANSCRIPTION_PROVIDER_WHISPER && model_path) {
+        printf("Using model: %s\n", model_path);
+    }
+    printf("Initializing provider...\n");
     double model_load_start = utils_now();
 
     if (transcription_init(model_path) != 0) {
@@ -166,7 +179,7 @@ int main(int argc, char *argv[]) {
     transcription_set_language("auto");
 
     double model_load_time = utils_now() - model_load_start;
-    printf("Model loaded in %.2f ms\n", model_load_time * 1000.0);
+    printf("Provider ready in %.2f ms\n", model_load_time * 1000.0);
 
     // Read WAV file
     WavFile wav = {0};

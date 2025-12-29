@@ -295,6 +295,18 @@ if(OpenMP_FOUND)
     endforeach()
 endif()
 
+# Find and link libcurl for remote transcription provider
+find_package(CURL)
+if(CURL_FOUND)
+    foreach(target yakety-cli yakety-app transcribe)
+        target_include_directories(${target} PRIVATE ${CURL_INCLUDE_DIRS})
+        target_link_libraries(${target} PRIVATE ${CURL_LIBRARIES})
+        target_compile_definitions(${target} PRIVATE YAKETY_HAVE_CURL)
+    endforeach()
+else()
+    message(STATUS "libcurl not found; remote transcription provider disabled.")
+endif()
+
 # Link Metal frameworks for macOS
 if(APPLE AND METAL_FRAMEWORKS)
     foreach(target yakety-cli yakety-app transcribe)

@@ -1,6 +1,6 @@
 # Yakety
 
-Cross-platform speech-to-text application for instant voice transcription through global keyboard shortcuts. Press and hold FN (macOS) or Right Ctrl (Windows) to record, transcription is processed locally using Whisper models and automatically pasted into app with focus.
+Cross-platform speech-to-text application for instant voice transcription through global keyboard shortcuts. Press and hold FN (macOS) or Right Ctrl (Windows) to record, transcription is processed via a configurable provider (remote HTTP or local Whisper) and automatically pasted into app with focus.
 
 ## Quick Start
 
@@ -22,14 +22,14 @@ Cross-platform speech-to-text application for instant voice transcription throug
 - **Platform Layer**: `src/mac/`, `src/windows/` - OS-specific implementations
 - **Build Config**: `run.sh` - Build script with whisper.cpp integration
 - **Audio**: `src/audio.c` - MiniAudio-based recording (16kHz mono)
-- **Transcription**: `src/transcription.cpp` - Whisper.cpp integration
+- **Transcription**: `src/transcription.cpp` - Provider abstraction (remote HTTP + Whisper)
 - **Models**: `src/models.c` - Model loading with fallback system
 
 ## Requirements
 
 - **macOS**: 14.0+, Apple Silicon, accessibility permissions
 - **Windows**: Visual Studio or Ninja, optional Vulkan SDK
-- **Dependencies**: whisper.cpp (auto-downloaded)
+- **Dependencies**: whisper.cpp (auto-downloaded), optional libcurl for remote transcription
 
 ## macOS Permissions
 

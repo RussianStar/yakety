@@ -42,6 +42,9 @@ static void create_default_preferences(void) {
     set_entry("model", "");      // Empty means use embedded model
     set_entry("language", "en"); // Default to English for low latency
     set_entry("vad_enabled", "true"); // VAD enabled by default
+    set_entry("transcription_provider", "remote_http");
+    set_entry("transcription_endpoint", "http://192.168.178.242:4141/voice/v1");
+    set_entry("transcription_model", "voxtral");
 }
 
 static PreferencesEntry *find_entry(const char *key) {

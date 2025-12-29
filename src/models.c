@@ -26,65 +26,72 @@ int models_load(void) {
 
     // Cleanup existing model first
     transcription_cleanup();
-    
-    overlay_show("Loading model");
+
+    bool remote_provider = transcription_get_provider() == TRANSCRIPTION_PROVIDER_REMOTE_HTTP;
+    overlay_show(remote_provider ? "Connecting to transcription service" : "Loading model");
 
     // Get the model path from preferences/bundled
     const char *model_path = utils_get_model_path();
-    if (!model_path) {
+    if (!model_path && !remote_provider) {
         overlay_hide();
         dialog_error("Model Error", "Could not find model file");
         return -1;
     }
 
-    log_info("Loading Whisper model: %s", model_path);
     int result = transcription_init(model_path);
 
     if (result != 0) {
-        // First failure - try fallback to base model
-        const char *failed_model = preferences_get_string("model");
-        char fallback_msg[256];
-
-        if (failed_model && strlen(failed_model) > 0) {
-            const char *filename = get_filename_from_path(failed_model);
-            snprintf(fallback_msg, sizeof(fallback_msg), "Failed to load %s, falling back to base model", filename);
-            
-            // Remove corrupted file
-            log_info("Removing corrupted user model: %s", failed_model);
-            remove(failed_model);
-        } else {
-            snprintf(fallback_msg, sizeof(fallback_msg), "Failed to load model, falling back to base model");
-        }
-
-        overlay_show_error(fallback_msg);
-
-        // Clear the model from preferences to use bundled model
-        preferences_set_string("model", "");
-        preferences_save();
-
-        // Wait, then try again with base model
-        app_sleep_responsive(3000);
-
-        overlay_show("Loading base model");
-        model_path = utils_get_model_path(); // Get bundled model path
-        if (model_path) {
-            result = transcription_init(model_path);
-        }
-
-        if (!model_path || result != 0) {
-            // Final failure
-            char error_msg[256];
-            if (model_path) {
-                const char *filename = get_filename_from_path(model_path);
-                snprintf(error_msg, sizeof(error_msg), "Failed to load %s", filename);
-            } else {
-                snprintf(error_msg, sizeof(error_msg), "Model not found");
-            }
-
-            overlay_show_error(error_msg);
+        if (remote_provider) {
+            overlay_show_error("Failed to initialize transcription service");
             app_sleep_responsive(3000);
             overlay_hide();
             return -1;
+        } else {
+            // First failure - try fallback to base model
+            const char *failed_model = preferences_get_string("model");
+            char fallback_msg[256];
+
+            if (failed_model && strlen(failed_model) > 0) {
+                const char *filename = get_filename_from_path(failed_model);
+                snprintf(fallback_msg, sizeof(fallback_msg), "Failed to load %s, falling back to base model", filename);
+
+                // Remove corrupted user model
+                log_info("Removing corrupted user model: %s", failed_model);
+                remove(failed_model);
+            } else {
+                snprintf(fallback_msg, sizeof(fallback_msg), "Failed to load model, falling back to base model");
+            }
+
+            overlay_show_error(fallback_msg);
+
+            // Clear the model from preferences to use bundled model
+            preferences_set_string("model", "");
+            preferences_save();
+
+            // Wait, then try again with base model
+            app_sleep_responsive(3000);
+
+            overlay_show("Loading base model");
+            model_path = utils_get_model_path(); // Get bundled model path
+            if (model_path) {
+                result = transcription_init(model_path);
+            }
+
+            if (!model_path || result != 0) {
+                // Final failure
+                char error_msg[256];
+                if (model_path) {
+                    const char *filename = get_filename_from_path(model_path);
+                    snprintf(error_msg, sizeof(error_msg), "Failed to load %s", filename);
+                } else {
+                    snprintf(error_msg, sizeof(error_msg), "Model not found");
+                }
+
+                overlay_show_error(error_msg);
+                app_sleep_responsive(3000);
+                overlay_hide();
+                return -1;
+            }
         }
     }
 
